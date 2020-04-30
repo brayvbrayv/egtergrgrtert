@@ -1,0 +1,192 @@
+# This is actually required for the if function to be
+# passed around as a 'function'.
+# Unfortunately there's no way to implement a nice equivilent
+# for ifelse
+
+if = (c t f) ~> if(c() t() f())
+
+# Kind of needed but might be dissapearing soon in favour
+# of lists
+array (a.) = a
+
+# A more robust equals function that wont crash cause you 
+# compare a glyph to a non-glyph and whatnot.
+
+equals(a,b) = try(a == b, false)
+
+# Functions that wrap around the standard operators
+sum (a b) = a + b
+mul (a b) = a * b
+dif (a b) = a - b
+div (a b) = a / b
+pow (a b) = a ^ b
+mod (a b) = a ~mod b
+and (a b) = a && b
+or (a b) = a || b
+
+# Functions that wrap around the list operators
+head(l) = 'l
+rest(l) = \l
+car(l) = 'l
+cdr(l) = \l
+
+caar(l) = car(car(l))
+cadr(l) = car(cdr(l))
+cdar(l) = cdr(car(l))
+cddr(l) = cdr(cdr(l))
+
+# Useful comparitive things
+max (a b) = if(a < b b a)
+min (a b) = if(a < b a b)
+
+_zip(a b r) = if (!a || !b r _zip(\a, \b, (['a,'b]):r))
+zip(a b) = reverse(_zip(a b []))
+
+# Bread and butter list mapipulation functions
+
+_repeat(item times result) = if (times <= 0 result _repeat(item times - 1 item : result))
+repeat(item times) = _repeat(item times [])
+
+_reverse(i o) = if(!i o _reverse(\i 'i:o))
+reverse(l) = _reverse(l [])
+# doesn't preserve order
+join_iter = _reverse
+
+_map(f l r) = if(!l r _map(f \l f('l):r))
+map(f l) = reverse(_map(f l []))
+
+_filter(f l r) = ifelse(
+	!l    r
+	f('l) _filter(f \l 'l:r)
+           _filter(f \l r)
+)
+filter(f l) = reverse(_filter(f l []))
+
+foldl(f x l) = if (!l x
+	foldl(f f(x 'l) \l)
+)
+
+foldr(f x l) = if (!l x
+	f('l foldr(f x \l))
+)
+
+_list(a i r) = if (i < 0 r _list(a i - 1 a(i):r))
+list(x.) = _list(x length(x) - 1 [])
+
+_range(a b r) = if (a == b r _range(a, b - 1, (b - 1):r))
+range(a b) = _range(a b [])
+
+toarray(l) = array(expand(l))
+
+_tolist(a o) = if (a _tolist(\a 'a:o) o)
+tolist(a) = reverse(_tolist(a []))
+
+join(a b) = if (!a b 'a:join(\a b))
+
+_merge(a b) = ifelse(
+	!a, b,
+	!b, a,
+	'b < 'a, 'b:_merge(a \b)
+	'a:_merge(\a b)
+)
+_sort(x h) = _merge(sort(take(x h)) sort(drop(x h)))
+sort(x) = if (length(x) <= 1 x _sort(x int(length(x) / 2)))
+
+_interleave(x ls new_ls) = if(ls == [], new_ls, _interleave(x, \ls, 'ls:x:new_ls))
+interleave(x ls) = if(ls == [], [], reverse(_interleave(x \ls ['ls])))
+
+flatten(x) = if(is_sequence(x), foldr(join, [], map(flatten, x)), [x])
+
+_remove_f(ls f new_ls) = ifelse(
+	!ls, new_ls,
+	f('ls), join_iter(\ls, new_ls),
+	_remove_f(\ls, f, 'ls : new_ls)
+)
+
+remove_f(ls f) = reverse(_remove_f(ls f []))
+
+remove(ls elem) = remove_f(ls, (e) -> e == elem)
+
+in(s elem) = ifelse(
+	!s, false, 
+	equals('s, elem), true,
+	in(\s elem)
+)
+
+# assoc-lists
+apair(key value) = [key, value]
+akey(pair) = 'pair
+avalue(pair) = cadr(pair)
+
+_assoc(ass key value new_ass) = ifelse(
+	!ass, apair(key value) : new_ass,
+	equals(akey('ass), key), join_iter((apair(key value) : \ass), new_ass),
+	_assoc(\ass, key, value, 'ass : new_ass)
+)
+
+assoc(ass key value) = _assoc(ass key value [])
+
+get(ass key) = ifelse(
+	!ass, [],
+	equals(akey('ass), key), avalue('ass), 
+	get(\ass key)
+)
+
+aremove(ass key) = remove_f(ass, (e) -> equals('e, key))
+aremove_value(ass value) = filter((e) -> !equals(cadr(e), value), ass)
+
+update(ass key f) = assoc(ass key f(get(ass key)))
+
+values(ass) = map(cadr ass)
+keys(ass) = map(car ass)
+
+# sets
+_set_insert(s elem new_s) = ifelse(
+	!s, elem : new_s,
+	equals('s, elem), join_iter(s, new_s),
+	_set_insert(\s, elem, 's : new_s)
+)
+
+set_insert(s elem) = _set_insert(s elem [])
+
+set_remove = remove
+
+to_set(ls) = foldr((a b) -> set_insert(b a), [], ls)
+
+_slow_set_equals(a b) = length(a) == length(b) && foldr((x,y) -> x && y, true, map(x -> in(b x), a))
+# initially i had this but it hit weird edge cases with
+# set_equals([5,1,"hi",;b,0,true,f],[;b,f,"hi",1,true,5,0])
+# set_equals(a b) = try(sort(a) == sort(b), _slow_set_equals(a b))
+set_equals = _slow_set_equals
+
+# Trig functions for degrees
+sind(d) = sin(rad(d))
+cosd(d) = cos(rad(d))
+tand(d) = tan(rad(d))
+cotd(d) = cot(rad(d))
+cscd(d) = csc(rad(d))
+secd(d) = sec(rad(d))
+asind(d) = deg(asin(d))
+acosd(d) = deg(acos(d))
+atand(d) = deg(atan(d))
+acotd(d) = deg(acot(d))
+acscd(d) = deg(acsc(d))
+asecd(d) = deg(asec(d))
+
+choose(n, k) = n! / k! / (n - k)!
+
+startswith(x z) = if(!z, true, (x && ('x == 'z) && startswith(\x \z)))
+drop(x n) = if (n <= 0 x  drop(\x n - 1))
+take(x n) = if (n <= 0 [] 'x:take(\x n - 1))
+
+_split(x z) = ifelse (
+	!x,              [""],
+	startswith(x z), "":split(drop(x length(z)) z),
+	(k -> ('x:'k):\k)(_split(\x z))
+)
+split(x z) = filter(i -> i, _split(x z))
+
+display(x.) = \join(expand(map(i -> ; :str(i), x)))
+
+chrs(s) = map(chr s)
+ords(s) = map(ord s)

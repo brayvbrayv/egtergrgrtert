@@ -1,0 +1,46 @@
+{
+	"release": "development",
+	"token": "NzA1NTM2ODIwNTEwODUxMDkz.XqtIqQ.thgUT-oWBOOQOgCMzXKzgW_J7Js",
+	"keystore": {
+		"disk": {
+			"filename": "keystore.json"
+		},
+		"redis": {
+			"url": "redis://user:@localhost:6379",
+			"number": 0
+		},
+		"mode": "disk"
+	},
+	"wolfram": {
+		"key": null
+	},
+	"patrons": {
+
+	},
+	"automata": {
+		"token": null,
+		"target": null,
+		"channel": null
+	},
+	"analytics": {
+		"carbon": null,
+		"discord-bots": null,
+		"bots-org": null
+	},
+	"advertising": {
+		"enable": true,
+		"interval": 200,
+		"starting-amount": 50
+	},
+	"error-reporting": {
+		"channel": null
+	},
+	"shards": {
+		"total": 1,
+		"mine": [0]
+	},
+	"calculator": {
+		"persistent": false,
+		"libraries": false
+	}
+}
