@@ -1,6 +1,6 @@
 {
-	"release": "development",
-	"token": "NzA1NTM2ODIwNTEwODUxMDkz.XqtTEQ.X50MlP1dzkl8gt21yPksp003wFo",
+	"release": "release",
+	"token": "NzA1NTM2ODIwNTEwODUxMDkz.XqtU3w.clqtnfSFvILz2OKPVB4BRff_CcM",
 	"keystore": {
 		"disk": {
 			"filename": "keystore.json"
